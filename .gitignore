@@ -36,3 +36,22 @@ ENV/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Scratch text / temporary files
+*_extracted.txt
+scratch/
+
+# Private Paper Manuscripts & LaTeX Sources (Never upload to public GitHub)
+*.tex
+*.bib
+*.pdf
+*.docx
+*.zip
+*.tar.gz
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*论文*

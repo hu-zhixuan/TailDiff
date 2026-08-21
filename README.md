@@ -3,9 +3,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/PyTorch-2.1+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Paper](https://img.shields.io/badge/Paper-Elsevier%20Standard%20Format-red.svg)](./表格与图片/paper.tex)
 
-Official implementation and open-source benchmark reproduction suite for the paper:  
+Official code implementation and open-source benchmark reproduction suite for:  
 **"TailDiff: A Lightweight Conditional Diffusion Modeling Approach for Financial Tail-Risk Early Warning"**
 
 ---
