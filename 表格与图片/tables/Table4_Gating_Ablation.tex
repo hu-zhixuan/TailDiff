@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Systematic Component \& Gating Mechanism Ablation Study (35-Fold Purged CV, CSI 300)}
+\label{tab:ablation}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Ablation Variant} & \textbf{Tail Recall ($\uparrow$)} & \textbf{Precision ($\uparrow$)} & \textbf{F1-Score ($\uparrow$)} & \textbf{PR-AUC ($\uparrow$)} & \textbf{FPR ($\downarrow$)} \\ \hline
+No-Aug (Real Only) & $0.0093 \pm 0.0307$ & $0.0417 \pm 0.1382$ & $0.0152 \pm 0.0503$ & $0.1396 \pm 0.1320$ & \textbf{0.0116} \\
+Replicate Baseline & $0.0046 \pm 0.0154$ & $0.0417 \pm 0.1382$ & $0.0083 \pm 0.0276$ & $0.1290 \pm 0.1099$ & \textbf{0.0080} \\
+Full-Synth (No Gating) & $\mathbf{0.4673 \pm 0.3664}$ & $0.1000 \pm 0.0880$ & $0.1531 \pm 0.1196$ & $\mathbf{0.1712 \pm 0.1893}$ & 0.5073 \\
+Drop-Near Only & $0.3922 \pm 0.3374$ & $\mathbf{0.1219 \pm 0.1444}$ & $\mathbf{0.1680 \pm 0.1731}$ & $0.1464 \pm 0.1334$ & 0.4464 \\
+Drop-Far Only & $\mathbf{0.4673 \pm 0.3664}$ & $0.1000 \pm 0.0880$ & $0.1531 \pm 0.1196$ & $\mathbf{0.1712 \pm 0.1893}$ & 0.5073 \\
+\textbf{TailDiff Bilateral (Ours)} & $0.3922 \pm 0.3374$ & $\mathbf{0.1219 \pm 0.1444}$ & $\mathbf{0.1680 \pm 0.1731}$ & $0.1464 \pm 0.1334$ & 0.4464 \\ \hline
+\end{tabular}
+\end{table}

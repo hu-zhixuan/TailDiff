@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Quantitative Evaluation of Synthetic Tail-Risk Generation Quality}
+\label{tab:generation_quality}
+\begin{tabular}{llccccc}
+\hline
+\textbf{Market} & \textbf{Method} & \textbf{KS Stat ($\downarrow$)} & \textbf{Wasserstein-1 ($\downarrow$)} & \textbf{Kurtosis $\Delta$ ($\downarrow$)} & \textbf{Vol Decay $L_1$ ($\downarrow$)} & \textbf{Non-Memorization} \\ \hline
+CSI 300 & Real Target & 0.0000 & 0.0000 & 0.0000 & 0.0000 & Verified \\
+CSI 300 & SMOTE & 0.2415 & 0.0982 & 3.8415 & 0.1840 & Failed \\
+CSI 300 & TimeGAN & 0.1842 & 0.0654 & 2.1054 & 0.1210 & Marginal \\
+CSI 300 & \textbf{TailDiff (Ours)} & \textbf{0.0794} & \textbf{0.0036} & \textbf{0.2300} & \textbf{0.0673} & \textbf{Verified (Pass)} \\ \hline
+S\&P 500 & Real Target & 0.0000 & 0.0000 & 0.0000 & 0.0000 & Verified \\
+S\&P 500 & \textbf{TailDiff (Ours)} & \textbf{0.0680} & \textbf{0.0018} & \textbf{7.8100} & \textbf{0.0635} & \textbf{Verified (Pass)} \\ \hline
+\end{tabular}
+\end{table}
