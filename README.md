@@ -4,54 +4,52 @@
 [![PyTorch 2.1+](https://img.shields.io/badge/PyTorch-2.1+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Official code implementation and open-source benchmark reproduction suite for:  
-**"TailDiff: A Lightweight Conditional Diffusion Modeling Approach for Financial Tail-Risk Early Warning"**
+Code, data and result tables for the TailDiff experiments. The accompanying manuscript is not included in this repository.
 
 ---
 
-## 🌟 Key Highlights
+## Overview
 
-- **Lightweight 1D Causal Convolutional Backbone ($0.91$M Parameters):** Replaces heavy multi-head attention with 1D dilated residual convolutions ($RF=37 \ge 32$) modulated by Feature-wise Linear Modulation (FiLM) with realized volatility $RV_{20}$.
-- **20-Step Deterministic DDIM Sampler ($5.09$ ms/sample):** Replaces 1000-step stochastic sampling with an ultra-fast ODE reverse trajectory, achieving millisecond-level CPU inference for live trading risk management.
-- **Bilateral DCR Sweet-Spot Quality Gating ($[Q_{5\%}, Q_{95\%}]$):** Non-parametric Leave-One-Out (LOO) distance filter that adaptively suppresses training sample memorization and unphysical hallucinations while emerging $\lambda_{\text{eff}} \approx 15.20\times \sim 17.27\times$.
-- **Strict Zero-Leakage Purged \& Embargoed Walk-Forward Cross-Validation:** Multi-fold rolling time-series framework with label purging and serial-correlation embargo buffers ($100\%$ pure out-of-sample evaluation).
-- **Substantial Empirical Performance Gains:**
-  - **Minority Tail Recall:** $+430\%$ to $+2000\%$ improvement (up to $\mathbf{51.13\%}$ on S\&P 500 and $\mathbf{31.02\%}$ on CSI 300).
-  - **PR-AUC:** Doubled on S\&P 500 ($+102.7\%$, $0.1296 \to \mathbf{0.2626}$).
-  - **Statistical Significance:** Confirmed via Wilcoxon signed-rank test across 35 Purged folds ($p = 0.0039 < 0.01$ ***).
-  - **Practical Hedging Utility:** Cuts maximum portfolio drawdown from $-46.5\%$ to $-14.2\%$.
+Market crashes are rare, so classifiers trained on daily index data almost never predict them. TailDiff tries to fix this by generating additional synthetic "pre-crash" windows with a small conditional diffusion model, filtering them, and adding them to the training set of ordinary downstream classifiers (XGBoost / LightGBM / MLP).
 
----
+Main components:
 
-## 🏗️ System Architecture
+- **Generator:** a 1D dilated causal convolution network (about 0.91M parameters, receptive field 37 ≥ window length 32), conditioned on 20-day realized volatility via FiLM. Sampling uses 20-step deterministic DDIM (reported at about 5 ms per sample on CPU).
+- **Quality gate (DCR):** keeps a synthetic sample only if its nearest-neighbour distance to the real crash windows falls between the 5th and 95th percentiles of the real samples' own leave-one-out distances. Too close suggests memorisation; too far suggests an implausible sample.
+- **Evaluation:** expanding-window walk-forward CV with purging and a 5-day embargo (about 35 folds per market). Synthetic samples are assigned the date of the real window they were derived from and obey the same purge rule.
+- **Labels:** a day is labelled as a tail event if the forward drawdown exceeds the EVT-estimated 97.5% DaR.
 
 ![TailDiff Architecture](./表格与图片/figures/Fig1_TailDiff_Architecture.png)
 
-TailDiff operates under a **Two-Stage Decoupled Paradigm**:
-1. **Offline Generative Simulation:** Historical market data $\to$ EVT $\text{DaR}_{97.5\%}$ extreme labeling $\to$ 1D FiLM Conditional Diffusion $\to$ 20-Step DDIM ODE Sampling $\to$ DCR Bilateral Quality Gating.
-2. **Online Real-Time Inference:** Fast tree-based classifiers (XGBoost / LightGBM / MLP) trained on the augmented manifold execute sub-millisecond risk warning and dynamic economic hedging.
-
 ---
 
-## 📊 Benchmark Results (35-Fold Purged Walk-Forward CV)
+## Results (walk-forward CV, mean over folds)
 
-| Market | Downstream Model | Augmentation Strategy | Tail Recall ($\uparrow$) | Precision ($\uparrow$) | F1-Score ($\uparrow$) | PR-AUC ($\uparrow$) | FPR ($\downarrow$) |
+| Market | Classifier | Training data | Recall | Precision | F1 | PR-AUC | FPR |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **CSI 300** | **XGBoost** | No-Aug (Original) | 0.0093 | 0.0512 | 0.0152 | 0.1396 | **0.0116** |
-| **CSI 300** | **XGBoost** | Replicate Baseline | 0.0139 | 0.0580 | 0.0238 | 0.1412 | **0.0097** |
-| **CSI 300** | **XGBoost** | **TailDiff (Proposed, Ours)** | **0.2024** | **0.1860** | **0.1361** | **0.1773** | 0.1941 |
-| **CSI 300** | **LightGBM** | **TailDiff (Proposed, Ours)** | **0.2097** | **0.1940** | **0.1379** | **0.1768** | 0.1986 |
-| **CSI 300** | **MLP** | **TailDiff (Proposed, Ours)** | **0.3102** | **0.1720** | **0.1620** | **0.1899** | 0.1957 |
-| **S&P 500** | **XGBoost** | No-Aug (Original) | 0.0000 | 0.0000 | 0.0000 | 0.1296 | **0.0173** |
-| **S&P 500** | **XGBoost** | **TailDiff (Proposed, Ours)** | **0.5113** | **0.2310** | **0.2108** | **0.2626** | 0.3648 |
-| **S&P 500** | **LightGBM** | **TailDiff (Proposed, Ours)** | **0.4958** | **0.2280** | **0.2096** | **0.2735** | 0.3388 |
-| **S&P 500** | **MLP** | **TailDiff (Proposed, Ours)** | **0.4067** | **0.2150** | **0.2036** | **0.2437** | 0.3444 |
+| CSI 300 | XGBoost | Real only | 0.009 | 0.051 | 0.015 | 0.140 | 0.012 |
+| CSI 300 | XGBoost | Real + replicated positives | 0.014 | 0.058 | 0.024 | 0.141 | 0.010 |
+| CSI 300 | XGBoost | Real + TailDiff | 0.202 | 0.186 | 0.136 | 0.177 | 0.194 |
+| CSI 300 | LightGBM | Real + TailDiff | 0.210 | 0.194 | 0.138 | 0.177 | 0.199 |
+| CSI 300 | MLP | Real + TailDiff | 0.310 | 0.172 | 0.162 | 0.190 | 0.196 |
+| S&P 500 | XGBoost | Real only | 0.000 | 0.000 | 0.000 | 0.130 | 0.017 |
+| S&P 500 | XGBoost | Real + TailDiff | 0.511 | 0.231 | 0.211 | 0.263 | 0.365 |
+| S&P 500 | LightGBM | Real + TailDiff | 0.496 | 0.228 | 0.210 | 0.274 | 0.339 |
+| S&P 500 | MLP | Real + TailDiff | 0.407 | 0.215 | 0.204 | 0.244 | 0.344 |
 
-*Note: In all models, gains in Tail Recall and F1-Score are statistically significant ($p = 0.0039 < 0.01$ under Wilcoxon signed-rank test).*
+Full tables with standard deviations are in `表格与图片/tables/`.
+
+**How to read these numbers:**
+
+- Without augmentation the classifiers essentially never predict a crash (recall ≈ 0), so large *relative* recall gains mostly reflect moving away from that degenerate state.
+- Higher recall comes with a much higher false positive rate (e.g. 0.017 → 0.365 on S&P 500 with XGBoost). Much of the recall gain is a shift in the operating point rather than better ranking.
+- PR-AUC, which does not depend on the threshold, improves modestly. In the one-sided Wilcoxon test against real-only training, the PR-AUC difference is **not significant** (p = 0.72); against replicated positives it is borderline (p = 0.048).
+- The recall/F1 test (W = 36, p = 0.0039) is the smallest p-value possible with 8 non-tied pairs: most folds had identical results under both methods (often no tail event or zero recall for both) and were dropped by the test. It should not be read as "significant across 35 folds".
+- Standard deviations across folds are large (recall ± 0.3–0.4).
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 TailDiff/
@@ -63,17 +61,15 @@ TailDiff/
 │   │   ├── dcr_gating.py             # DCR Leave-One-Out bilateral sweet-spot gating
 │   │   ├── stylized_facts.py         # Financial stylized facts quality control suite
 │   │   └── downstream.py             # 35-Fold Purged & Embargoed walk-forward evaluation
-│   ├── baselines.py                  # SMOTE, Borderline-SMOTE, TimeGAN, C-VAE
+│   ├── baselines.py                  # SMOTE, Borderline-SMOTE, C-VAE
 │   ├── ablation.py                   # Gating variants & DDIM Pareto latency scan
 │   ├── run_step1_main.py             # Step 1 master pipeline (CSI 300 & S&P 500)
 │   ├── run_step2_ablation.py         # Step 2 ablation & Wilcoxon significance tests
-│   └── build_all_publication_assets.py # Master exporter (Figures 1-6 & Tables 1-5)
+│   └── build_all_publication_assets.py # Exports Figures 1-6 & Tables 1-5
 │
 ├── 表格与图片/
-│   ├── paper.tex                     # Full publication LaTeX paper (Elsevier format)
-│   ├── references.bib                # BibTeX references database (28+ entries)
-│   ├── figures/                      # 300 DPI Nature-palette publication figures (Fig 1-6)
-│   └── tables/                       # Publication tables (Markdown & LaTeX format)
+│   ├── figures/                      # Figures 1-6
+│   └── tables/                       # Tables 1-5 (Markdown)
 │
 ├── 原始数据/
 │   ├── csi300_daily.csv              # CSI 300 daily index data (2015-2026)
@@ -85,7 +81,7 @@ TailDiff/
 
 ---
 
-## 🚀 Quickstart & Reproduction
+## Reproduction
 
 ### 1. Environment Setup
 ```bash
@@ -94,50 +90,42 @@ cd TailDiff
 pip install torch torchvision numpy pandas scikit-learn lightgbm xgboost matplotlib scipy
 ```
 
-### 2. Run Step 1 Master Benchmark
+### 2. Main experiment
 ```bash
 python -m 复现包.run_step1_main
 ```
 
-### 3. Run Step 2 Systematic Ablation & Wilcoxon Tests
+### 3. Ablation and Wilcoxon tests
 ```bash
 python -m 复现包.run_step2_ablation
 ```
 
-### 4. Export All Publication Figures & LaTeX Tables
+### 4. Export figures and tables
 ```bash
 python -m 复现包.build_all_publication_assets
 ```
 
 ---
 
-## 📄 Paper Compilation (LaTeX)
+## Limitations
 
-The complete publication manuscript is written in the standard Elsevier format (`elsarticle.cls` with `\linenumbers`):
-```bash
-cd 表格与图片
-pdflatex paper.tex
-bibtex paper
-pdflatex paper.tex
-pdflatex paper.tex
-```
+- Only two markets (CSI 300 and S&P 500 daily index data, 2015–2026) with a few dozen tail episodes each; results may not transfer to other assets or frequencies.
+- The downstream classifiers use a fixed decision threshold. A fairer comparison would tune the real-only baseline's threshold for the same FPR, which has not been done yet.
+- The C-VAE and SMOTE baselines are implemented in `baselines.py` but are not in the main table above. TimeGAN is not implemented.
+- The generator does not reproduce fat tails well: the kurtosis recorded in `save_summary.py` is about 2.7 for synthetic windows vs about 10.5 for real crash windows.
 
----
+### Note on the figures and tables in `表格与图片/`
 
-## 📑 Citation
+`复现包/build_all_publication_assets.py` does **not** compute its outputs from experiment runs:
 
-If you find TailDiff useful for your research, please cite:
+- **Tables 1–5 and Figures 3–5** are written from numbers hard-coded in the script. To check them, re-run `run_step1_main.py` / `run_step2_ablation.py` and compare.
+- **Figure 2** uses placeholder data: "synthetic" samples are real crash windows plus Gaussian noise, and the DCR distances are random draws, not outputs of the diffusion model.
+- **Figure 6** (crash warning timeline and hedging backtest) is **fully simulated**: a synthetic price path with injected crashes and warning probabilities placed on those crashes. The drawdown numbers in its legend (−46.5% vs −14.2%) are not results.
 
-```bibtex
-@article{hu2026taildiff,
-  title={TailDiff: A Lightweight Conditional Diffusion Modeling Approach for Financial Tail-Risk Early Warning},
-  author={Hu, Zhixuan and Collaborators},
-  journal={Expert Systems with Applications},
-  year={2026}
-}
-```
+These figures should be regenerated from real model outputs, or removed, before being used anywhere.
 
 ---
 
-## 📜 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## License
+
+MIT
