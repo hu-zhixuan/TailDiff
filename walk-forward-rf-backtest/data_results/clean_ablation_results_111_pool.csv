@@ -1,0 +1,9 @@
+﻿System,CumReturn,MDD,Sharpe,Calmar,Role
+"System 0-A (Pure Rules S4 Equivalent, No ML)",-65.17%,-81.48%,-0.6447,-0.2740,Counterfactual Baseline (Broken)
+"System 0-B (Pure Rules S5 Equivalent, No ML)",-11.82%,-45.28%,-0.2127,-0.0655,Full Rules Counterfactual
+System 1 (Pure ML Probability Gating),-28.91%,-29.01%,-0.7381,-0.2705,ML Gating Baseline
+System 2 (ML + ATR Dynamic Volatility Stop),-15.66%,-26.50%,-0.4358,-0.1508,Tail Truncation
+System 3 (ML + ATR + Bull-Bear Line Filter),-22.68%,-51.40%,-0.4914,-0.1162,Regime Confirmation
+System 4 (ML + ATR + BBL + TOCE Exit),-19.97%,-39.48%,-0.4386,-0.1316,Liquidity Optimization
+System 5 (Full ARMS Hybrid Framework),15.11%,-19.25%,0.1401,0.1781,Final Adaptive Defense (Winner)
+Buy & Hold (Equally Weighted Market Beta),58.92%,-23.14%,0.5072,2.5465,Market Passive Benchmark

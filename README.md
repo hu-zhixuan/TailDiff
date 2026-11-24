@@ -1,8 +1,42 @@
-# TailDiff: A Lightweight Conditional Diffusion Modeling Approach for Financial Tail-Risk Early Warning
+# TailDiff & Walk-Forward Quantitative Risk Research
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/PyTorch-2.1+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+本仓库合并整理了两条互补的**金融风控与量化机器学习（Quant ML & Risk Control）**实证研究主线，涵盖从极端尾部风险生成式预警到 A 股多周期前瞻回测防线：
+
+| 模块 | 目录位置 | 研究核心 | 关键结论 |
+|---|---|---|---|
+| **模块一：TailDiff（极端尾部风险条件扩散预警）** | 根目录（`复现包/`、`原始数据/`、`表格与图片/`） | 轻量 1D 因果卷积条件扩散模型（$0.91$M 参数）+ 20 步 DDIM（$5.09$ ms）+ 双边 DCR 质量门控 | 35 折严谨 Purged WFO 下，S&P 500 PR-AUC 翻倍（$0.1296 \to 0.2626$），尾部召回率最高达 $51.13\%$，组合最大回撤从 $-46.5\%$ 降至 $-14.2\%$ |
+| **模块二：ARMS & TOCE（A 股随机森林风控回测与复杂度陷阱）** | [`walk-forward-rf-backtest/`](walk-forward-rf-backtest/) | 规则进攻 × ML 概率防御解耦 + TOCE 时间机会成本退出 + 双资产池（111 宽基 vs 49 龙头）6 阶段消融与复杂度陷阱验证 | 111 只去偏宽基池中，纯规则系统回撤 $-81.48\%$，完整 ARMS（System 5）将回撤压至 **$-19.25\%$** 并取得 **$+15.11\%$** 收益；49 只行业龙头池中 System 4 获 **$+36.73\%$** 收益（Sharpe `0.4014`） |
+
+> 💡 **快速导航**：模块一 [`TailDiff` 文档与复现](#-module-1-taildiff-financial-tail-risk-early-warning) ｜ 模块二 [`walk-forward-rf-backtest/README.md`](walk-forward-rf-backtest/README.md)（完整 6 阶段消融矩阵、A1–F1 审稿补充实验、复杂度陷阱报告与本地复现脚本）
+
+---
+
+## 📦 Module 2 Overview: Walk-Forward RF Risk-Managed Backtest (ARMS & TOCE)
+
+Located in [`walk-forward-rf-backtest/`](walk-forward-rf-backtest/), this module evaluates the **Asymmetric Complexity Hypothesis** across two A-share pools (2019–2023) using strictly leakage-free Purged Walk-Forward Optimization:
+
+- **111 De-biased Broad-Base Pool (Six-Stage Ablation):** Pure rule benchmarks (`System 0-A`) suffer `-81.48%` MDD (`-65.17%` return), while cascading ML entry gating with ATR stop, BBL trend filter, and **TOCE (Time-based Opportunity Cost Exit)** (`System 5`) compresses drawdown to **`-19.25%`** with **`+15.11%`** cumulative return (`Calmar +0.1781`).
+- **49 Sector Leaders Pool (Exp B1):** `System 4` (ML + ATR + BBL + TOCE) achieves **`+36.73%`** return (`Sharpe 0.4014`, `MDD -21.07%`), demonstrating how asset dispersion governs offensive alpha while ML risk gating preserves cross-universe drawdown invariance.
+- **Reviewer Suite (`experiments/` A1–F1) & Complexity Trap (`V2_Complexity_Trap_Experiment/`):** Includes 30-seed paired Calmar tests (`30/30` win rate, $p = 0.0000$), 2024 OOS $N=2000$ Monte Carlo permutation tests, fee/ATR sensitivity grids, and 16D SHAP attribution.
+
+![Six-Stage Ablation Equity Curves](walk-forward-rf-backtest/figures/plots/fig_pure_6stage_ablation_clean.png)
+
+```bash
+# Quickstart for Module 2
+cd walk-forward-rf-backtest
+pip install -r requirements.txt
+python scripts/run_full_academic_pipeline.py
+```
+
+👉 完整实验指标、图表与代码结构说明请直接查看：[`walk-forward-rf-backtest/README.md`](walk-forward-rf-backtest/README.md)
+
+---
+
+## ⚡ Module 1: TailDiff (Financial Tail-Risk Early Warning)
 
 Official code implementation and open-source benchmark reproduction suite for:  
 **"TailDiff: A Lightweight Conditional Diffusion Modeling Approach for Financial Tail-Risk Early Warning"**
@@ -78,6 +112,15 @@ TailDiff/
 ├── 原始数据/
 │   ├── csi300_daily.csv              # CSI 300 daily index data (2015-2026)
 │   └── sp500_daily.csv               # S&P 500 daily index data (2015-2026)
+│
+├── walk-forward-rf-backtest/         # [Module 2] A-Share ARMS & TOCE Walk-Forward RF Backtest
+│   ├── README.md                     # Detailed Module 2 results, A1-F1 suite & reproduction
+│   ├── strategy.py                   # Core ARMS & TOCE engine
+│   ├── experiments/                  # Reviewer ablation & Monte Carlo scripts (A1-F1)
+│   ├── V2_Complexity_Trap_Experiment/# Complexity Trap dual-pool experiment
+│   ├── figures/                      # Empirical equity & sensitivity plots
+│   ├── data_results/                 # Exported CSV deliverables
+│   └── data_cache/                   # Pre-computed WFO pickle datasets
 │
 ├── README.md
 └── .gitignore

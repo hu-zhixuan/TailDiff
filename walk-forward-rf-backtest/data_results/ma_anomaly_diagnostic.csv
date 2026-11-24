@@ -1,0 +1,7 @@
+﻿Metric,With_000670_SZ (Contaminated),Without_000670_SZ (De-biased Clean)
+Universe Description,112 Assets (Contains 2.5-yr Suspended Stock),111 Assets (Clean Broad Equities)
+MA Crossover Cumulative Return,111.24%,-12.25%
+MA Crossover Max Drawdown (MDD),-40.98%,-50.20%
+MA Crossover Annualized Sharpe,0.2730,-0.1261
+Single-Day Return on 2022-08-23,+108.72% (Anomalous Spike),+0.42% (Normal Market Variance)
+Root Cause Analysis,"000670.SZ suspended for 886 days, resumed +429.78%",True de-biased quantitative behavior in bear market
